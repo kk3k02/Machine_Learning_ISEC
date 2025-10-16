@@ -1,5 +1,5 @@
 # ===============================================
-# DATA PREPARATION – HEART DISEASE DATASET
+# DATA PREPARATION + PIPELINE – HEART DISEASE DATASET
 # ===============================================
 
 import pandas as pd
@@ -74,3 +74,61 @@ X_train, X_test, y_train, y_test = train_test_split(
 print(f"\nTraining set size: {X_train.shape[0]} samples")
 print(f"Test set size: {X_test.shape[0]} samples")
 print("Data preparation completed successfully!")
+
+# -----------------------------
+# 5. DATA PROCESSING PIPELINE
+# -----------------------------
+
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline
+from sklearn.linear_model import LogisticRegression
+from sklearn.metrics import classification_report
+import joblib
+from sklearn import set_config
+
+# Define transformers
+categorical_transformer = OneHotEncoder(drop="first", handle_unknown="ignore")
+numeric_transformer = StandardScaler()
+
+# Combine transformers
+preprocessor = ColumnTransformer(
+    transformers=[
+        ("categorical", categorical_transformer, categorical_features),
+        ("numerical", numeric_transformer, numeric_features)
+    ]
+)
+
+# Define full pipeline with preprocessing + baseline model
+pipeline = Pipeline(steps=[
+    ("preprocessor", preprocessor),
+    ("classifier", LogisticRegression(max_iter=1000))
+])
+
+# Optional: visualize structure (works best in Jupyter)
+set_config(display='diagram')
+print(pipeline)
+
+# Split from the cleaned original dataset (not df_encoded)
+X_raw = df[categorical_features + numeric_features]
+y_raw = df["target"]
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X_raw, y_raw, test_size=0.2, random_state=42, stratify=y_raw
+)
+
+# Fit pipeline
+pipeline.fit(X_train, y_train)
+
+# Evaluate pipeline performance
+y_pred = pipeline.predict(X_test)
+print("\n=== Classification Report (Baseline Logistic Regression) ===")
+print(classification_report(y_test, y_pred, digits=3))
+
+# Show transformed features
+feature_names = pipeline.named_steps["preprocessor"].get_feature_names_out()
+print("\nNumber of transformed features:", len(feature_names))
+print("First 10 transformed features:", feature_names[:10])
+
+# Save pipeline for reuse (e.g., Milestone M2)
+joblib.dump(pipeline, "heart_pipeline.joblib")
+print("\nSaved full preprocessing + model pipeline to 'heart_pipeline.joblib'")

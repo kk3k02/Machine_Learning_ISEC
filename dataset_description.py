@@ -6,7 +6,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import pandas as pd
 
-matplotlib.use('TkAgg')  # lub 'QtAgg' jeśli masz zainstalowany Qt
+matplotlib.use('TkAgg')
 
 import seaborn as sns
 
@@ -14,7 +14,7 @@ import seaborn as sns
 df = pd.read_csv("heart.csv")
 
 print("=== Preview of the Dataset ===")
-print(df.head())  # zamiast display()
+print(df.head())
 
 # -----------------------------
 # Basic Dataset Information
